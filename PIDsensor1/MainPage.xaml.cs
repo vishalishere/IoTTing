@@ -39,6 +39,8 @@ namespace PIDsensor1
 
         string[] messages = new string[] {"I see you", "I know you are there", "Come out where ever you are", "I am ready now, come and play" };
 
+        bool missonAborted = false;
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -59,14 +61,16 @@ namespace PIDsensor1
                 abortPin.SetDriveMode(GpioPinDriveMode.InputPullDown);
             else
                 abortPin.SetDriveMode(GpioPinDriveMode.Input);
-            abortPin.DebounceTimeout = TimeSpan.FromMilliseconds(50);
+            abortPin.DebounceTimeout = TimeSpan.FromMilliseconds(100);
             abortPin.ValueChanged += AbortPin_ValueChanged;
         }
 
         private void AbortPin_ValueChanged(GpioPin sender, GpioPinValueChangedEventArgs args)
         {
             var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-                AbortText.Text = "ABORT MISSION!";
+                if (args.Edge == GpioPinEdge.RisingEdge)
+                    missonAborted = missonAborted ? false : true;
+                AbortText.Text = (missonAborted ? "ABORT MISSION!" : "");
             });
         }
 
@@ -130,22 +134,22 @@ namespace PIDsensor1
                 pin.Write(GpioPinValue.Low);
             }
 
-            keypadData.Add(0, '1');
-            keypadData.Add(1, '2');
-            keypadData.Add(2, '3');
-            keypadData.Add(3, 'A');
-            keypadData.Add(4, '4');
-            keypadData.Add(5, '5');
-            keypadData.Add(6, '6');
-            keypadData.Add(7, 'B');
-            keypadData.Add(8, '7');
-            keypadData.Add(9, '8');
-            keypadData.Add(10, '9');
-            keypadData.Add(11, 'C');
-            keypadData.Add(12, '*');
-            keypadData.Add(13, '0');
-            keypadData.Add(14, '#');
-            keypadData.Add(15, 'D');
+            keypadData.Add(0, 'D');
+            keypadData.Add(1, '#');
+            keypadData.Add(2, '0');
+            keypadData.Add(3, '*');
+            keypadData.Add(4, 'C');
+            keypadData.Add(5, '9');
+            keypadData.Add(6, '8');
+            keypadData.Add(7, '7');
+            keypadData.Add(8, 'B');
+            keypadData.Add(9, '6');
+            keypadData.Add(10, '5');
+            keypadData.Add(11, '4');
+            keypadData.Add(12, 'A');
+            keypadData.Add(13, '3');
+            keypadData.Add(14, '2');
+            keypadData.Add(15, '1');
 
             this.timer = new DispatcherTimer();
             this.timer.Interval = TimeSpan.FromMilliseconds(200);
