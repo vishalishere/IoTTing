@@ -7,6 +7,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Devices.Gpio;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Media.SpeechSynthesis;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -85,6 +86,8 @@ namespace PIDsensor1
 
         private void InitPirsensorPin()
         {
+            MediaElement mediaElement = new MediaElement();
+            SpeechSynthesizer speech = new SpeechSynthesizer();
             if (gpio == null)
                 return;
             pirPin = gpio.OpenPin(5);
@@ -95,9 +98,16 @@ namespace PIDsensor1
             pirPin.SetDriveMode(GpioPinDriveMode.Input);
             pirPin.ValueChanged += (GpioPin p, GpioPinValueChangedEventArgs args) =>
             {
-                var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-                    PirStatus.Text = messages.OrderBy(x => Guid.NewGuid()).Take(1).First();
-                });
+                //if (args.Edge == GpioPinEdge.RisingEdge)
+                {
+                    var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () => {
+                        var msg = messages.OrderBy(x => Guid.NewGuid()).Take(1).First();
+                        PirStatus.Text = msg;
+                        SpeechSynthesisStream stream = await speech.SynthesizeTextToStreamAsync(msg);
+                        mediaElement.SetSource(stream, stream.ContentType);
+                        mediaElement.Play();
+                    });
+                }
             };
         }
 
