@@ -98,9 +98,10 @@ namespace PIDsensor1
             pirPin.SetDriveMode(GpioPinDriveMode.Input);
             pirPin.ValueChanged += (GpioPin p, GpioPinValueChangedEventArgs args) =>
             {
-                //if (args.Edge == GpioPinEdge.RisingEdge)
+                if (args.Edge == GpioPinEdge.RisingEdge)
                 {
                     var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () => {
+                        IoTHelper.SendReading(DateTime.Now);
                         var msg = messages.OrderBy(x => Guid.NewGuid()).Take(1).First();
                         PirStatus.Text = msg;
                         SpeechSynthesisStream stream = await speech.SynthesizeTextToStreamAsync(msg);
