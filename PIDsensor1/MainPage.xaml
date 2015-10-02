@@ -9,7 +9,7 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock x:Name="PirStatus" FontSize="40" Text="No movement so far" />
+            <TextBlock x:Name="PirStatus" FontSize="60" Text="No movement so far" />
             <TextBlock x:Name="KeypadKey" FontSize="40" Text="" />
             <TextBlock x:Name="AbortText" Foreground="Red" FontSize="40" Text="" />
         </StackPanel>
