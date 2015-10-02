@@ -14,6 +14,8 @@ namespace EventReader
         static string iotHubD2cEndpoint = "messages/events";//"iothub-ehub-iotleg-988-e2490900c4";//"messages/events";
         static EventHubClient eventHubClient;
 
+        static DeviceClient devClient;
+
         private async static Task ReceiveMessagesFromDeviceAsync(string partition)
         {
             var eventHubReceiver = eventHubClient.GetDefaultConsumerGroup().CreateReceiver(partition, DateTime.Now);
@@ -27,16 +29,35 @@ namespace EventReader
             }
         }
 
+        async static void ReceivedFromAzure()
+        {
+            devClient.CreateFromConnectionString(connectionString, TransportType.Http1);
+            Message msg;
+            string triggerTime;
+            msg = devClient.ReceiveAsync();
+            if (msg != null)
+            {
+                triggerTime = Encoding.ASCII.GetString(msg.GetBytes());
+                await devClient.CompleteAsync(msg);
+                Console.WriteLine("Triggered at: {0}", triggerTime);
+            }
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Receive messages\n");
-            eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, iotHubD2cEndpoint);
+            
+            //eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, iotHubD2cEndpoint);
 
-            var d2cPartitions = eventHubClient.GetRuntimeInformation().PartitionIds;
+            //var d2cPartitions = eventHubClient.GetRuntimeInformation().PartitionIds;
 
-            foreach (string partition in d2cPartitions)
+            //foreach (string partition in d2cPartitions)
+            //{
+            //    ReceiveMessagesFromDeviceAsync(partition);
+            //}
+            while(true)
             {
-                ReceiveMessagesFromDeviceAsync(partition);
+                ReceivedFromAzure();
             }
             Console.ReadLine();
         }

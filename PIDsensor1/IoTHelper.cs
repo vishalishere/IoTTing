@@ -16,6 +16,11 @@ namespace PIDsensor1
         static string iotHubUri = "IoTLeg.azure-devices.net";
         static string deviceKey = "3tvfXCb0sWaH6uXle1evgTuDd7PRmg2culVxVzFdH/s=";
 
+        public IoTHelper()
+        {
+
+        }
+
 
         public static async void SendReading(DateTime triggerTime)
         {
