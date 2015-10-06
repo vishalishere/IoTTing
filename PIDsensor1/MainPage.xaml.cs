@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Devices.Gpio;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -29,12 +30,16 @@ namespace PIDsensor1
         GpioController gpio = GpioController.GetDefault();
         GpioPin pirPin;
         GpioPin abortPin;
+        GpioPin ledAbortPin;
         GpioPin[] inputs = new GpioPin[4];
         GpioPin[] outputs = new GpioPin[4];
+
+        int trut = 255;
 
         GpioPin ledPin;
 
         DispatcherTimer timer = new DispatcherTimer();
+        DispatcherTimer abortTimer = new DispatcherTimer();
 
         Dictionary<int, char> keypadData = new Dictionary<int, char>();
 
@@ -58,12 +63,34 @@ namespace PIDsensor1
             if (gpio == null)
                 return;
             abortPin = gpio.OpenPin(13);
+            ledAbortPin = gpio.OpenPin(26);
+            ledAbortPin.Write(GpioPinValue.High);
+            ledAbortPin.SetDriveMode(GpioPinDriveMode.Output);
             if (abortPin.IsDriveModeSupported(GpioPinDriveMode.InputPullDown))
                 abortPin.SetDriveMode(GpioPinDriveMode.InputPullDown);
             else
                 abortPin.SetDriveMode(GpioPinDriveMode.Input);
             abortPin.DebounceTimeout = TimeSpan.FromMilliseconds(100);
             abortPin.ValueChanged += AbortPin_ValueChanged;
+
+            //this.abortTimer = new DispatcherTimer();
+            //this.abortTimer.Interval = TimeSpan.FromTicks(trut);
+            //this.abortTimer.Tick += AbortTimer_Tick;
+            //this.abortTimer.Start();
+        }
+
+        private void AbortTimer_Tick(object sender, object e)
+        {
+            Task.Run(async () =>
+            {
+                ledAbortPin.Write(GpioPinValue.Low);
+                await Task.Delay(trut);
+                ledAbortPin.Write(GpioPinValue.High);
+                trut += 1;
+                trut %= 255;
+                abortTimer.Interval = TimeSpan.FromTicks(trut);
+            });
+
         }
 
         private void AbortPin_ValueChanged(GpioPin sender, GpioPinValueChangedEventArgs args)
@@ -72,6 +99,10 @@ namespace PIDsensor1
                 if (args.Edge == GpioPinEdge.RisingEdge)
                     missonAborted = missonAborted ? false : true;
                 AbortText.Text = (missonAborted ? "ABORT MISSION!" : "");
+                if (missonAborted)
+                    ledAbortPin.Write(GpioPinValue.Low);
+                else
+                    ledAbortPin.Write(GpioPinValue.High);
             });
         }
 
